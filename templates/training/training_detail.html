@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ training.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ training.title }}</h2>
+    <p class="text-muted">{{ training.get_training_type_display }} Training</p>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header"><h5>Training Details</h5></div>
+                <div class="card-body">
+                    <p>{{ training.description }}</p>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>📅 Start Date:</strong> {{ training.start_date|date:"M d, Y" }}</p>
+                            <p><strong>📅 End Date:</strong> {{ training.end_date|date:"M d, Y" }}</p>
+                            <p><strong>⏰ Duration:</strong> {{ training.duration_hours }} hours</p>
+                            <p><strong>📍 Location:</strong> {{ training.location }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>🏛️ Unit:</strong> {{ training.unit.name }}</p>
+                            <p><strong>👨‍🏫 Instructor:</strong> {{ training.instructor.user.get_full_name }}</p>
+                            <p><strong>👥 Max Participants:</strong> {{ training.max_participants|default:"Unlimited" }}</p>
+                            <p><strong>📊 Status:</strong> <span class="badge bg-primary">{{ training.get_status_display }}</span></p>
+                        </div>
+                    </div>
+                    
+                    {% if training.venue_details %}
+                    <hr>
+                    <h6>Venue Details</h6>
+                    <p>{{ training.venue_details|linebreaks }}</p>
+                    {% endif %}
+                    
+                    {% if training.prerequisites %}
+                    <hr>
+                    <h6>Prerequisites</h6>
+                    <p>{{ training.prerequisites|linebreaks }}</p>
+                    {% endif %}
+                    
+                    {% if training.syllabus %}
+                    <hr>
+                    <p><strong>📄 Syllabus:</strong> <a href="{{ training.syllabus.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Download</a></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Enrollment Card for Cadets -->
+            {% if user.role == 'CADET' %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Enrollment</h5>
+                </div>
+                <div class="card-body">
+                    {% if is_enrolled %}
+                        <div class="alert alert-success">
+                            <h6>✅ Enrolled!</h6>
+                            {% if enrollment.completion_status %}
+                            <p class="mb-0"><strong>Status:</strong> Completed</p>
+                            {% if enrollment.overall_score %}
+                            <p class="mb-0"><strong>Score:</strong> {{ enrollment.overall_score }}%</p>
+                            <p class="mb-0"><strong>Grade:</strong> {{ enrollment.grade }}</p>
+                            {% endif %}
+                            {% else %}
+                            <p class="mb-0">Training in progress</p>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        {% if training.status == 'SCHEDULED' %}
+                        <a href="{% url 'training_enroll' training.pk %}" class="btn btn-success w-100 btn-lg">Enroll Now</a>
+                        {% else %}
+                        <div class="alert alert-warning">Enrollment not available</div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Management Card for Officers -->
+            {% if can_manage %}
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'training_update' training.pk %}" class="btn btn-warning">Edit Training</a>
+                        <a href="{% url 'training_enrollments' training.pk %}" class="btn btn-info">
+                            View Enrollments ({{ training.get_enrollment_count }})
+                        </a>
+                        <a href="{% url 'training_assess' training.pk %}" class="btn btn-primary">Assess Trainees</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header"><h5>Statistics</h5></div>
+                <div class="card-body">
+                    <p><strong>Total Enrolled:</strong> {{ training.get_enrollment_count }}</p>
+                    <p><strong>Completion Rate:</strong> {{ training.get_completion_rate }}%</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="{% url 'training_list' %}" class="btn btn-secondary">← Back to Trainings</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+from accounts.models import User, Officer, Cadet
+from units.models import Unit
+
+# Get or create a unit
+unit, _ = Unit.objects.get_or_create(name='Alpha Unit')
+
+# Create Officer user and profile
+officer_user = User.objects.create_user(
+    username='officer2',
+    password='officer123',
+    first_name='John',
+    last_name='Doe',
+    role='OFFICER'
+)
+officer = Officer.objects.create(
+    user=officer_user,
+    rank='CAPT',
+    unit=unit,
+    employee_id='OFF001',
+    joining_date='2020-01-01'
+)
+
+# Create Cadet user and profile
+cadet_user = User.objects.create_user(
+    username='cadet2',
+    password='cadet123',
+    first_name='Rahul',
+    last_name='Sharma',
+    role='CADET'
+)
+cadet = Cadet.objects.create(
+    user=cadet_user,
+    rank='CDT',
+    unit=unit,
+    enrollment_number='NCC2024001',
+    enrollment_date='2024-01-01',
+    college_name='Delhi University',
+    course='B.Tech',
+    year_of_study=2,
+    roll_number='DU2022001',
+    parent_name='Mr. Sharma',
+    parent_phone='9876543210',
+    emergency_contact='9876543210'
+)

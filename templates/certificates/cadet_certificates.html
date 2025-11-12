@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}My Certificates{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>🏅 My Certificates</h2>
+    <p class="text-muted">View and download your NCC certificates</p>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_certificates }}</h3>
+                    <p class="mb-0">Total Certificates</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>{{ a_certificates }}</h3>
+                    <p class="mb-0">A Certificates</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>{{ b_certificates }}</h3>
+                    <p class="mb-0">B Certificates</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3>{{ c_certificates }}</h3>
+                    <p class="mb-0">C Certificates</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Certificates List -->
+    <div class="row">
+        {% for certificate in certificates %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">🏆 {{ certificate.get_certificate_type_display }}</h5>
+                        <span class="badge bg-light text-dark">{{ certificate.certificate_number }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ certificate.title|default:"Certificate" }}</h5>
+                    <p class="card-text">{{ certificate.description|truncatewords:20 }}</p>
+                    
+                    <hr>
+                    
+                    <div class="row small">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>📅 Issued:</strong> {{ certificate.issued_date|date:"M d, Y" }}</p>
+                            <p class="mb-1"><strong>👨‍✈️ Issued By:</strong> {{ certificate.issued_by.user.get_full_name }}</p>
+                        </div>
+                        <div class="col-6">
+                            {% if certificate.grade %}
+                            <p class="mb-1"><strong>🎯 Grade:</strong> <span class="badge bg-success">{{ certificate.grade }}</span></p>
+                            {% endif %}
+                            {% if certificate.score %}
+                            <p class="mb-1"><strong>📊 Score:</strong> {{ certificate.score }}%</p>
+                            {% endif %}
+                            {% if certificate.valid_until %}
+                            <p class="mb-1"><strong>⏰ Valid Until:</strong> {{ certificate.valid_until|date:"M d, Y" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if certificate.event %}
+                    <div class="alert alert-info mt-2 mb-2 py-2">
+                        <small><strong>🎯 Event:</strong> {{ certificate.event.title }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if certificate.training %}
+                    <div class="alert alert-info mt-2 mb-2 py-2">
+                        <small><strong>🎓 Training:</strong> {{ certificate.training.title }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'certificate_detail' certificate.pk %}" class="btn btn-primary btn-sm">
+                            👁️ View Details
+                        </a>
+                        {% if certificate.certificate_file %}
+                        <a href="{{ certificate.certificate_file.url }}" class="btn btn-success btn-sm" target="_blank">
+                            📥 Download Certificate
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <h4>📭 No Certificates Yet</h4>
+                <p>You haven't received any certificates yet. Keep participating in NCC activities!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if certificates %}
+    <div class="alert alert-success mt-4">
+        <strong>💡 Tip:</strong> Keep your certificates safe and download them for your records. 
+        These certificates are valuable for your career and academic pursuits.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

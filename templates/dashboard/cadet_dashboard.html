@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadet Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Welcome, {{ user.get_full_name }}</h2>
+    <p class="text-muted">Enrollment No: {{ cadet.enrollment_number }}</p>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>My Profile</h5>
+                    <p><strong>Rank:</strong> {{ cadet.get_rank_display }}</p>
+                    <p><strong>Unit:</strong> {{ cadet.unit.name }}</p>
+                    <p><strong>College:</strong> {{ cadet.college_name }}</p>
+                    <a href="{% url 'cadet_detail' cadet.id %}" class="btn btn-primary btn-sm">View Full Profile</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>My Attendance</h5>
+                    <p>View your attendance records and statistics</p>
+                    <a href="{% url 'cadet_attendance' %}" class="btn btn-success btn-sm">View Attendance</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Events</h5>
+                    <p>Register for upcoming events and activities</p>
+                    <a href="{% url 'cadet_events' %}" class="btn btn-info btn-sm">View Events</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

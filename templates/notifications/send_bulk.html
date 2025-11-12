@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Send Bulk Notification{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>📢 Send Bulk Notification</h2>
+    <p class="text-muted">Send notifications to multiple users at once</p>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="title" name="title" required maxlength="200">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="message" class="form-label">Message <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                    <small class="form-text text-muted">Write a clear and concise message</small>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="notification_type" class="form-label">Notification Type <span class="text-danger">*</span></label>
+                        <select class="form-control" id="notification_type" name="notification_type" required>
+                            <option value="">Select Type</option>
+                            {% for value, label in notification_types %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
+                        <select class="form-control" id="priority" name="priority" required>
+                            {% for value, label in priorities %}
+                            <option value="{{ value }}" {% if value == 'MEDIUM' %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="target_audience" class="form-label">Target Audience <span class="text-danger">*</span></label>
+                    <select class="form-control" id="target_audience" name="target_audience" required onchange="toggleTargetFields()">
+                        <option value="">Select Audience</option>
+                        <option value="ALL">Everyone</option>
+                        <option value="ALL_CADETS">All Cadets</option>
+                        <option value="ALL_OFFICERS">All Officers</option>
+                        <option value="UNIT">Specific Unit</option>
+                        <option value="YEAR">Specific Year</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3" id="unit_field" style="display: none;">
+                    <label for="target_unit" class="form-label">Select Unit</label>
+                    <select class="form-control" id="target_unit" name="target_unit">
+                        <option value="">Select Unit</option>
+                        {% for unit in units %}
+                        <option value="{{ unit.id }}">{{ unit.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3" id="year_field" style="display: none;">
+                    <label for="target_year" class="form-label">Select Year</label>
+                    <select class="form-control" id="target_year" name="target_year">
+                        <option value="">Select Year</option>
+                        <option value="1">First Year</option>
+                        <option value="2">Second Year</option>
+                        <option value="3">Third Year</option>
+                        <option value="4">Fourth Year</option>
+                    </select>
+                </div>
+                
+                <hr>
+                
+                <div class="alert alert-warning">
+                    <strong>⚠️ Note:</strong> This will send individual notifications to all selected users. 
+                    Make sure your message is appropriate for the target audience.
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'notification_list' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">📤 Send Notification</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleTargetFields() {
+    const audience = document.getElementById('target_audience').value;
+    const unitField = document.getElementById('unit_field');
+    const yearField = document.getElementById('year_field');
+    
+    unitField.style.display = audience === 'UNIT' ? 'block' : 'none';
+    yearField.style.display = audience === 'YEAR' ? 'block' : 'none';
+    
+    if (audience !== 'UNIT') {
+        document.getElementById('target_unit').value = '';
+    }
+    if (audience !== 'YEAR') {
+        document.getElementById('target_year').value = '';
+    }
+}
+</script>
+{% endblock %}

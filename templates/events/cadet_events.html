@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}My Events{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>My Events Dashboard</h2>
+    <p class="text-muted">View your registered events and available opportunities</p>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ registrations.count }}</h3>
+                    <p class="mb-0">Total Registrations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>
+                        {% widthratio registrations|length 1 1 as total %}
+                        {{ registrations|dictsort:"status"|slice:":999"|length|add:"0" }}
+                        <!-- Counting approved in view instead -->
+                        {{ approved_count|default:"0" }}
+                    </h3>
+                    <p class="mb-0">Approved</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3>{{ pending_count|default:"0" }}</h3>
+                    <p class="mb-0">Pending Approval</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upcoming Approved Events -->
+    {% if upcoming_events %}
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">📅 Upcoming Events (Approved)</h5>
+        </div>
+        <div class="card-body">
+            <div class="list-group">
+                {% for event in upcoming_events %}
+                <a href="{% url 'event_detail' event.slug %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ event.title }}</h6>
+                            <small>📍 {{ event.location }} • 📅 {{ event.start_date|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="badge bg-success">Approved</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- My Registrations -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>📝 My Registrations</h5>
+        </div>
+        <div class="card-body">
+            {% if registrations %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Registered On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registration in registrations %}
+                        <tr>
+                            <td>
+                                <strong>{{ registration.event.title }}</strong><br>
+                                <small class="text-muted">{{ registration.event.location }}</small>
+                            </td>
+                            <td>{{ registration.event.start_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if registration.status == 'PENDING' %}
+                                    <span class="badge bg-warning">⏳ Pending</span>
+                                {% elif registration.status == 'APPROVED' %}
+                                    <span class="badge bg-success">✅ Approved</span>
+                                {% elif registration.status == 'REJECTED' %}
+                                    <span class="badge bg-danger">❌ Rejected</span>
+                                {% elif registration.status == 'WAITLIST' %}
+                                    <span class="badge bg-info">📋 Waitlist</span>
+                                {% elif registration.status == 'CANCELLED' %}
+                                    <span class="badge bg-secondary">🚫 Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ registration.registration_date|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'event_detail' registration.event.slug %}" 
+                                   class="btn btn-sm btn-primary">View</a>
+                                
+                                {% if registration.status == 'PENDING' or registration.status == 'APPROVED' or registration.status == 'WAITLIST' %}
+                                <a href="{% url 'event_cancel_registration' registration.id %}" 
+                                   class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Are you sure you want to cancel this registration?')">
+                                   Cancel
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <h5>📋 No registrations yet</h5>
+                <p class="mb-0">Register for available events below to get started!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Available Events -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">🎯 Available Events for Registration</h5>
+        </div>
+        <div class="card-body">
+            {% if available_events %}
+            <div class="row">
+                {% for event in available_events %}
+                <div class="col-md-6 mb-3">
+                    <div class="card border-primary h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ event.title }}</h5>
+                            <p class="card-text">{{ event.description|truncatewords:15 }}</p>
+                            
+                            <div class="mb-2">
+                                <span class="badge bg-info">{{ event.get_event_type_display }}</span>
+                                {% if event.is_mandatory %}
+                                <span class="badge bg-danger">Mandatory</span>
+                                {% endif %}
+                            </div>
+                            
+                            <p class="small mb-2">
+                                <strong>📅 Date:</strong> {{ event.start_date|date:"M d, Y" }}<br>
+                                <strong>📍 Location:</strong> {{ event.location }}<br>
+                                <strong>👥 Registered:</strong> {{ event.get_approved_count }}
+                                {% if event.max_participants %} / {{ event.max_participants }}{% endif %}
+                            </p>
+                            
+                            <div class="d-grid">
+                                <a href="{% url 'event_detail' event.slug %}" class="btn btn-primary">
+                                    View & Register
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <h5>⚠️ No events available</h5>
+                <p class="mb-0">Check back later for new events!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'event_list' %}" class="btn btn-secondary">📋 Browse All Events</a>
+        <a href="{% url 'cadet_dashboard' %}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,203 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - NCC Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-container {
+            max-width: 500px;
+            width: 100%;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+        }
+        .nav-tabs .nav-link {
+            color: #495057;
+            border: none;
+            padding: 12px 20px;
+        }
+        .nav-tabs .nav-link.active {
+            color: #fff;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 10px 10px 0 0;
+        }
+        .role-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+        }
+        .btn-login:hover {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container p-3">
+        <div class="text-center mb-4">
+            <h1 class="text-white">NCC AUTOMATION SYSTEM</h1>
+            <p class="text-white-50">National Cadet Corps</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-body p-4">
+                <!-- Display Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Role Tabs -->
+                <ul class="nav nav-tabs mb-4" id="roleTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="admin-tab" data-bs-toggle="tab" 
+                                data-bs-target="#admin" type="button" role="tab">
+                            Admin
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="officer-tab" data-bs-toggle="tab" 
+                                data-bs-target="#officer" type="button" role="tab">
+                            Officer
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="cadet-tab" data-bs-toggle="tab" 
+                                data-bs-target="#cadet" type="button" role="tab">
+                            Cadet
+                        </button>
+                    </li>
+                </ul>
+                
+                <!-- Tab Content -->
+                <div class="tab-content" id="roleTabContent">
+                    <!-- Admin Login -->
+                    <div class="tab-pane fade show active" id="admin" role="tabpanel">
+                        <div class="text-center">
+                            <div class="role-icon">👨‍💼</div>
+                            <h4>Administrator Login</h4>
+                            <p class="text-muted">Full system access</p>
+                        </div>
+                        
+                        <form method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="role" value="ADMIN">
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" name="username" class="form-control" 
+                                       placeholder="Enter admin username" required autofocus>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" 
+                                       placeholder="Enter password" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-login w-100">
+                                Login as Admin
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Officer Login -->
+                    <div class="tab-pane fade" id="officer" role="tabpanel">
+                        <div class="text-center">
+                            <div class="role-icon">🎖️</div>
+                            <h4>Officer Login</h4>
+                            <p class="text-muted">Manage your unit</p>
+                        </div>
+                        
+                        <form method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="role" value="OFFICER">
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" name="username" class="form-control" 
+                                       placeholder="Enter officer username" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" 
+                                       placeholder="Enter password" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-login w-100">
+                                Login as Officer
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Cadet Login -->
+                    <div class="tab-pane fade" id="cadet" role="tabpanel">
+                        <div class="text-center">
+                            <div class="role-icon">🎓</div>
+                            <h4>Cadet Login</h4>
+                            <p class="text-muted">View your profile and attendance</p>
+                        </div>
+                        
+                        <form method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="role" value="CADET">
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" name="username" class="form-control" 
+                                       placeholder="Enter cadet username" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" 
+                                       placeholder="Enter password" required>
+                            </div>
+                            
+                            <div class="alert alert-info small">
+                                <strong>Note:</strong> Cadets have read-only access to their data.
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-login w-100">
+                                Login as Cadet
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        © 2025 NCC Automation System. All rights reserved.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

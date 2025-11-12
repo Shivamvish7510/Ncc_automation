@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📬 Notifications</h2>
+        <div>
+            {% if user.role != 'CADET' %}
+            <a href="{% url 'send_bulk_notification' %}" class="btn btn-primary me-2">
+                📢 Send Bulk Notification
+            </a>
+            <a href="{% url 'bulk_notification_history' %}" class="btn btn-outline-secondary me-2">
+                📋 History
+            </a>
+            {% endif %}
+            {% if unread_count > 0 %}
+            <a href="{% url 'notification_mark_all_read' %}" class="btn btn-success">
+                ✓ Mark All Read ({{ unread_count }})
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-control">
+                        <option value="">All Types</option>
+                        {% for value, label in notification_types %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Status</label>
+                    <select name="read" class="form-control">
+                        <option value="">All</option>
+                        <option value="unread">Unread</option>
+                        <option value="read">Read</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Notification List -->
+    <div class="row">
+        {% for notification in notifications %}
+        <div class="col-12 mb-3">
+            <div class="card {% if not notification.is_read %}border-primary{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                {% if not notification.is_read %}
+                                <span class="badge bg-primary me-2">NEW</span>
+                                {% endif %}
+                                <span class="badge bg-info me-2">{{ notification.get_notification_type_display }}</span>
+                                {% if notification.priority == 'URGENT' %}
+                                <span class="badge bg-danger me-2">🚨 URGENT</span>
+                                {% elif notification.priority == 'HIGH' %}
+                                <span class="badge bg-warning me-2">⚠️ HIGH</span>
+                                {% endif %}
+                                <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                            </div>
+                            
+                            <h5 class="card-title mb-2">{{ notification.title }}</h5>
+                            <p class="card-text">{{ notification.message|truncatewords:30 }}</p>
+                            
+                            {% if notification.sender %}
+                            <small class="text-muted">
+                                <strong>From:</strong> {{ notification.sender.get_full_name }} ({{ notification.sender.get_role_display }})
+                            </small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="ms-3">
+                            <div class="btn-group-vertical" role="group">
+                                <a href="{% url 'notification_detail' notification.pk %}" class="btn btn-sm btn-primary">
+                                    View
+                                </a>
+                                {% if not notification.is_read %}
+                                <a href="{% url 'notification_mark_read' notification.pk %}" class="btn btn-sm btn-success">
+                                    Mark Read
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'notification_delete' notification.pk %}" class="btn btn-sm btn-danger" 
+                                   onclick="return confirm('Delete this notification?')">
+                                    Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <h4>📭 No notifications</h4>
+                <p>You're all caught up!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

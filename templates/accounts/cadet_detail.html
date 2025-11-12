@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadet Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Cadet Profile</h2>
+        {% if is_readonly %}
+            <span class="readonly-badge">READ ONLY - Contact your officer to update</span>
+        {% else %}
+            <a href="{% url 'cadet_update' cadet.id %}" class="btn btn-warning">Edit Profile</a>
+        {% endif %}
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Personal Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Name:</th>
+                            <td>{{ cadet.user.get_full_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Enrollment No:</th>
+                            <td>{{ cadet.enrollment_number }}</td>
+                        </tr>
+                        <tr>
+                            <th>Rank:</th>
+                            <td>{{ cadet.get_rank_display }}</td>
+                        </tr>
+                        <tr>
+                            <th>Unit:</th>
+                            <td>{{ cadet.unit.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Blood Group:</th>
+                            <td>{{ cadet.blood_group|default:"N/A" }}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5>Academic Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th>College:</th>
+                            <td>{{ cadet.college_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Course:</th>
+                            <td>{{ cadet.course }}</td>
+                        </tr>
+                        <tr>
+                            <th>Year:</th>
+                            <td>{{ cadet.year_of_study }}</td>
+                        </tr>
+                        <tr>
+                            <th>Roll No:</th>
+                            <td>{{ cadet.roll_number }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h5>Parent/Guardian Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Name:</th>
+                            <td>{{ cadet.parent_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Phone:</th>
+                            <td>{{ cadet.parent_phone }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ cadet.parent_email|default:"N/A" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Emergency Contact:</th>
+                            <td>{{ cadet.emergency_contact }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if is_readonly %}
+    <div class="alert alert-warning mt-3">
+        <strong>Note:</strong> You cannot edit your profile. If you need to update any information, please contact your assigned officer.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

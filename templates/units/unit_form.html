@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Unit{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ action }} Unit</h2>
+    
+    <div class="card mt-4">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Unit Name</label>
+                            {{ form.name }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Wing</label>
+                            {{ form.wing }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Unit Code</label>
+                            {{ form.unit_code }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Location</label>
+                            {{ form.location }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Contact Email</label>
+                            {{ form.contact_email }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Contact Phone</label>
+                            {{ form.contact_phone }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Established Date</label>
+                            {{ form.established_date }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3 form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label">Is Active</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">{{ action }} Unit</button>
+                    <a href="{% url 'unit_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

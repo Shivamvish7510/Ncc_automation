@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Certificates{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Certificates</h2>
+        {% if user.role != 'CADET' %}
+        <a href="{% url 'certificate_create' %}" class="btn btn-primary">Issue New Certificate</a>
+        {% endif %}
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Certificate Type</label>
+                    <select name="type" class="form-control">
+                        <option value="">All Types</option>
+                        {% for value, label in certificate_types %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control">
+                        <option value="">All Status</option>
+                        {% for value, label in statuses %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Certificate List -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Certificate Number</th>
+                            {% if user.role != 'CADET' %}
+                            <th>Cadet Name</th>
+                            {% endif %}
+                            <th>Type</th>
+                            <th>Title</th>
+                            <th>Issued Date</th>
+                            <th>Grade</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for certificate in certificates %}
+                        <tr>
+                            <td><strong>{{ certificate.certificate_number }}</strong></td>
+                            {% if user.role != 'CADET' %}
+                            <td>{{ certificate.cadet.user.get_full_name }}</td>
+                            {% endif %}
+                            <td><span class="badge bg-primary">{{ certificate.get_certificate_type_display }}</span></td>
+                            <td>{{ certificate.title }}</td>
+                            <td>{{ certificate.issued_date|date:"M d, Y" }}</td>
+                            <td>{{ certificate.grade|default:"-" }}</td>
+                            <td>
+                                {% if certificate.status == 'ISSUED' %}
+                                    <span class="badge bg-success">{{ certificate.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning">{{ certificate.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'certificate_detail' certificate.pk %}" class="btn btn-sm btn-info">View</a>
+                                {% if certificate.certificate_file %}
+                                <a href="{{ certificate.certificate_file.url }}" class="btn btn-sm btn-success" target="_blank">Download</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No certificates found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% if user.role == 'CADET' %}
+    <div class="alert alert-info mt-3">
+        <strong>Note:</strong> These are your official NCC certificates. Keep them safe!
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

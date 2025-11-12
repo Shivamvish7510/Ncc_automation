@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Session Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ session.title }}</h2>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Type:</strong> {{ session.get_session_type_display }}</p>
+                    <p><strong>Date:</strong> {{ session.date }}</p>
+                    <p><strong>Time:</strong> {{ session.start_time }} - {{ session.end_time }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Unit:</strong> {{ session.unit.name }}</p>
+                    <p><strong>Location:</strong> {{ session.location }}</p>
+                    <p><strong>Mandatory:</strong> {{ session.is_mandatory|yesno:"Yes,No" }}</p>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <h5>Attendance Statistics</h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="alert alert-info">
+                            <strong>Total:</strong> {{ stats.total }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="alert alert-success">
+                            <strong>Present:</strong> {{ stats.present }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="alert alert-danger">
+                            <strong>Absent:</strong> {{ stats.absent }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="alert alert-warning">
+                            <strong>Late:</strong> {{ stats.late }}
+                        </div>
+                    </div>
+                </div>
+                <p><strong>Attendance Rate:</strong> {{ stats.percentage }}%</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>Attendance Records</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Cadet</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                        <th>Marked By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attendance in attendances %}
+                    <tr>
+                        <td>{{ attendance.cadet.user.get_full_name }}</td>
+                        <td>
+                            {% if attendance.status == 'PRESENT' %}
+                                <span class="badge bg-success">{{ attendance.get_status_display }}</span>
+                            {% elif attendance.status == 'ABSENT' %}
+                                <span class="badge bg-danger">{{ attendance.get_status_display }}</span>
+                            {% elif attendance.status == 'LATE' %}
+                                <span class="badge bg-warning">{{ attendance.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-info">{{ attendance.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ attendance.remarks|default:"-" }}</td>
+                        <td>{{ attendance.marked_by.user.get_full_name|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="{% url 'mark_attendance' session.id %}" class="btn btn-primary">Edit Attendance</a>
+        <a href="{% url 'attendance_session_list' %}" class="btn btn-secondary">Back to Sessions</a>
+    </div>
+</div>
+{% endblock %}

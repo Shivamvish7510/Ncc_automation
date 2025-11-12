@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Attendance Session{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ action }} Attendance Session</h2>
+    
+    <div class="card mt-4">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Title</label>
+                            {{ form.title }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Session Type</label>
+                            {{ form.session_type }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label>Date</label>
+                            {{ form.date }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label>Start Time</label>
+                            {{ form.start_time }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label>End Time</label>
+                            {{ form.end_time }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Unit</label>
+                            {{ form.unit }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label>Location</label>
+                            {{ form.location }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label>Notes</label>
+                    {{ form.notes }}
+                </div>
+                
+                <div class="mb-3 form-check">
+                    {{ form.is_mandatory }}
+                    <label class="form-check-label">Is Mandatory</label>
+                </div>
+                
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">{{ action }} Session</button>
+                    <a href="{% url 'attendance_session_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Units Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Units Management</h2>
+        {% if user.role == 'ADMIN' %}
+        <a href="{% url 'unit_create' %}" class="btn btn-primary">Add New Unit</a>
+        {% endif %}
+    </div>
+    
+    <div class="row">
+        {% for unit in units %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ unit.name }}</h5>
+                    <p class="card-text">
+                        <strong>Wing:</strong> {{ unit.get_wing_display }}<br>
+                        <strong>Code:</strong> {{ unit.unit_code }}<br>
+                        <strong>Location:</strong> {{ unit.location }}<br>
+                        <strong>Contact:</strong> {{ unit.contact_phone }}<br>
+                        <strong>Status:</strong> 
+                        {% if unit.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </p>
+                    {% if user.role == 'ADMIN' %}
+                    <a href="{% url 'unit_update' unit.id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'unit_delete' unit.id %}" class="btn btn-sm btn-danger">Delete</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">No units found.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

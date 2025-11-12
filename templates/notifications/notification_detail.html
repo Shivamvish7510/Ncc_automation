@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card border-primary">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">📬 Notification Details</h4>
+                <span class="badge bg-light text-dark">{{ notification.get_notification_type_display }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="d-flex align-items-center mb-2">
+                    {% if notification.priority == 'URGENT' %}
+                    <span class="badge bg-danger me-2">🚨 URGENT</span>
+                    {% elif notification.priority == 'HIGH' %}
+                    <span class="badge bg-warning me-2">⚠️ HIGH PRIORITY</span>
+                    {% elif notification.priority == 'MEDIUM' %}
+                    <span class="badge bg-info me-2">MEDIUM</span>
+                    {% else %}
+                    <span class="badge bg-secondary me-2">LOW</span>
+                    {% endif %}
+                    
+                    {% if notification.is_read %}
+                    <span class="badge bg-success">✓ Read</span>
+                    {% else %}
+                    <span class="badge bg-primary">NEW</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <h2 class="mb-3">{{ notification.title }}</h2>
+            
+            <div class="alert alert-light">
+                <p class="mb-0" style="white-space: pre-line;">{{ notification.message }}</p>
+            </div>
+            
+            <hr>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {% if notification.sender %}
+                    <p><strong>📤 From:</strong> {{ notification.sender.get_full_name }}</p>
+                    <p><strong>👤 Role:</strong> {{ notification.sender.get_role_display }}</p>
+                    {% else %}
+                    <p><strong>📤 From:</strong> System</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <p><strong>📅 Sent:</strong> {{ notification.created_at|date:"F d, Y h:i A" }}</p>
+                    {% if notification.is_read %}
+                    <p><strong>👁️ Read:</strong> {{ notification.read_at|date:"F d, Y h:i A" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if notification.event %}
+            <hr>
+            <div class="alert alert-info">
+                <h6>🎯 Related Event</h6>
+                <p><strong>{{ notification.event.title }}</strong></p>
+                <a href="{% url 'event_detail' notification.event.pk %}" class="btn btn-sm btn-info">View Event</a>
+            </div>
+            {% endif %}
+            
+            {% if notification.training %}
+            <hr>
+            <div class="alert alert-info">
+                <h6>🎓 Related Training</h6>
+                <p><strong>{{ notification.training.title }}</strong></p>
+                <a href="{% url 'training_detail' notification.training.pk %}" class="btn btn-sm btn-info">View Training</a>
+            </div>
+            {% endif %}
+            
+            {% if notification.action_url %}
+            <hr>
+            <div class="text-center">
+                <a href="{{ notification.action_url }}" class="btn btn-primary btn-lg">
+                    Take Action →
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="{% url 'notification_list' %}" class="btn btn-secondary">← Back to Notifications</a>
+        {% if not notification.is_read %}
+        <a href="{% url 'notification_mark_read' notification.pk %}" class="btn btn-success">Mark as Read</a>
+        {% endif %}
+        <a href="{% url 'notification_delete' notification.pk %}" class="btn btn-danger" 
+           onclick="return confirm('Delete this notification?')">Delete</a>
+    </div>
+</div>
+{% endblock %}

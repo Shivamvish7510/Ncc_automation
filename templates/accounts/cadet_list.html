@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Cadets{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Manage Cadets</h2>
+        <a href="{% url 'cadet_create' %}" class="btn btn-primary">Add New Cadet</a>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Enrollment No</th>
+                        <th>Name</th>
+                        <th>Rank</th>
+                        <th>Unit</th>
+                        <th>College</th>
+                        <th>Year</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cadet in cadets %}
+                    <tr>
+                        <td>{{ cadet.enrollment_number }}</td>
+                        <td>{{ cadet.user.get_full_name }}</td>
+                        <td>{{ cadet.get_rank_display }}</td>
+                        <td>{{ cadet.unit.name }}</td>
+                        <td>{{ cadet.college_name }}</td>
+                        <td>{{ cadet.year_of_study }}</td>
+                        <td>
+                            <a href="{% url 'cadet_detail' cadet.id %}" class="btn btn-sm btn-info">View</a>
+                            <a href="{% url 'cadet_update' cadet.id %}" class="btn btn-sm btn-warning">Edit</a>
+                            {% if user.role == 'ADMIN' %}
+                            <a href="{% url 'cadet_delete' cadet.id %}" class="btn btn-sm btn-danger">Delete</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No cadets found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

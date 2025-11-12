@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}My Trainings{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>🎓 My Training Programs</h2>
+    <p class="text-muted">View your enrolled trainings and available programs</p>
+    
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ enrollments.count }}</h3>
+                    <p class="mb-0">Total Enrollments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>{{ completed_count }}</h3>
+                    <p class="mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>{{ available_trainings.count }}</h3>
+                    <p class="mb-0">Available to Enroll</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- My Enrollments -->
+    <h4 class="mb-3">📚 My Enrolled Trainings</h4>
+    <div class="row mb-4">
+        {% for enrollment in enrollments %}
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header {% if enrollment.completion_status %}bg-success{% else %}bg-primary{% endif %} text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">{{ enrollment.training.get_training_type_display }}</h6>
+                        {% if enrollment.completion_status %}
+                            <span class="badge bg-light text-dark">✓ Completed</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">In Progress</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ enrollment.training.title }}</h5>
+                    <p class="card-text text-muted">{{ enrollment.training.description|truncatewords:15 }}</p>
+                    
+                    <hr>
+                    
+                    <div class="row small">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>📅 Enrolled:</strong> {{ enrollment.enrollment_date|date:"M d, Y" }}</p>
+                            <p class="mb-1"><strong>⏰ Duration:</strong> {{ enrollment.training.duration_hours }}h</p>
+                            <p class="mb-1"><strong>📍 Location:</strong> {{ enrollment.training.location }}</p>
+                        </div>
+                        <div class="col-6">
+                            {% if enrollment.attendance_percentage > 0 %}
+                            <p class="mb-1"><strong>📊 Attendance:</strong> {{ enrollment.attendance_percentage }}%</p>
+                            {% endif %}
+                            {% if enrollment.overall_score %}
+                            <p class="mb-1"><strong>🎯 Score:</strong> {{ enrollment.overall_score }}</p>
+                            {% endif %}
+                            {% if enrollment.grade %}
+                            <p class="mb-1"><strong>🏆 Grade:</strong> <span class="badge bg-success">{{ enrollment.grade }}</span></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if enrollment.feedback %}
+                    <hr>
+                    <div class="alert alert-info py-2 mb-0">
+                        <small><strong>💬 Feedback:</strong> {{ enrollment.feedback|truncatewords:20 }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'training_detail' enrollment.training.pk %}" class="btn btn-sm btn-primary w-100">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <h5>📭 No Enrollments Yet</h5>
+                <p>You haven't enrolled in any training programs yet. Check available trainings below!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Available Trainings -->
+    {% if available_trainings %}
+    <hr>
+    <h4 class="mb-3">🆕 Available Training Programs</h4>
+    <div class="row">
+        {% for training in available_trainings %}
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 border-primary">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">{{ training.get_training_type_display }}</h6>
+                        <span class="badge bg-primary">{{ training.get_status_display }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ training.title }}</h5>
+                    <p class="card-text text-muted">{{ training.description|truncatewords:15 }}</p>
+                    
+                    <hr>
+                    
+                    <div class="row small">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>📅 Start:</strong> {{ training.start_date|date:"M d, Y" }}</p>
+                            <p class="mb-1"><strong>⏰ Duration:</strong> {{ training.duration_hours }}h</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-1"><strong>📍 Location:</strong> {{ training.location }}</p>
+                            <p class="mb-1"><strong>👨‍🏫 Instructor:</strong> {{ training.instructor.user.get_full_name|truncatewords:2 }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if training.prerequisites %}
+                    <div class="alert alert-warning py-2 mt-2 mb-0">
+                        <small><strong>⚠️ Prerequisites:</strong> {{ training.prerequisites|truncatewords:15 }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'training_detail' training.pk %}" class="btn btn-sm btn-outline-primary">
+                            View Details
+                        </a>
+                        <a href="{% url 'training_enroll' training.pk %}" class="btn btn-sm btn-success">
+                            ✓ Enroll Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if not enrollments and not available_trainings %}
+    <div class="alert alert-info text-center mt-4">
+        <h4>📭 No Training Programs</h4>
+        <p>There are no training programs available at the moment. Check back later!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

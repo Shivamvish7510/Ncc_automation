@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Training{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ action }} Training Program</h2>
+    <p class="text-muted">Create or update NCC training programs</p>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <h5 class="mb-3">Basic Information</h5>
+                
+                <div class="mb-3">
+                    <label for="{{ form.title.id_for_label }}" class="form-label">
+                        Training Title <span class="text-danger">*</span>
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <div class="text-danger">{{ form.title.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">
+                        Description <span class="text-danger">*</span>
+                    </label>
+                    {{ form.description }}
+                    <small class="form-text text-muted">Detailed description of the training program</small>
+                    {% if form.description.errors %}
+                        <div class="text-danger">{{ form.description.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.training_type.id_for_label }}" class="form-label">
+                            Training Type <span class="text-danger">*</span>
+                        </label>
+                        {{ form.training_type }}
+                        {% if form.training_type.errors %}
+                            <div class="text-danger">{{ form.training_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.duration_hours.id_for_label }}" class="form-label">
+                            Duration (Hours) <span class="text-danger">*</span>
+                        </label>
+                        {{ form.duration_hours }}
+                        {% if form.duration_hours.errors %}
+                            <div class="text-danger">{{ form.duration_hours.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr>
+                <h5 class="mb-3">Schedule & Location</h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                            Start Date <span class="text-danger">*</span>
+                        </label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}
+                            <div class="text-danger">{{ form.start_date.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                            End Date <span class="text-danger">*</span>
+                        </label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}
+                            <div class="text-danger">{{ form.end_date.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.unit.id_for_label }}" class="form-label">
+                            Unit <span class="text-danger">*</span>
+                        </label>
+                        {{ form.unit }}
+                        {% if form.unit.errors %}
+                            <div class="text-danger">{{ form.unit.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.instructor.id_for_label }}" class="form-label">
+                            Instructor <span class="text-danger">*</span>
+                        </label>
+                        {{ form.instructor }}
+                        {% if form.instructor.errors %}
+                            <div class="text-danger">{{ form.instructor.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.location.id_for_label }}" class="form-label">
+                        Location <span class="text-danger">*</span>
+                    </label>
+                    {{ form.location }}
+                    <small class="form-text text-muted">e.g., Training Ground, Parade Ground, etc.</small>
+                    {% if form.location.errors %}
+                        <div class="text-danger">{{ form.location.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.venue_details.id_for_label }}" class="form-label">
+                        Venue Details (Optional)
+                    </label>
+                    {{ form.venue_details }}
+                    <small class="form-text text-muted">Additional venue information, directions, etc.</small>
+                    {% if form.venue_details.errors %}
+                        <div class="text-danger">{{ form.venue_details.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                <h5 class="mb-3">Additional Details</h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.max_participants.id_for_label }}" class="form-label">
+                            Max Participants (Optional)
+                        </label>
+                        {{ form.max_participants }}
+                        <small class="form-text text-muted">Leave blank for unlimited</small>
+                        {% if form.max_participants.errors %}
+                            <div class="text-danger">{{ form.max_participants.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">
+                            Status <span class="text-danger">*</span>
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="text-danger">{{ form.status.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.prerequisites.id_for_label }}" class="form-label">
+                        Prerequisites (Optional)
+                    </label>
+                    {{ form.prerequisites }}
+                    <small class="form-text text-muted">Any requirements or prerequisites for enrollment</small>
+                    {% if form.prerequisites.errors %}
+                        <div class="text-danger">{{ form.prerequisites.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.syllabus.id_for_label }}" class="form-label">
+                        Syllabus (PDF) (Optional)
+                    </label>
+                    {{ form.syllabus }}
+                    <small class="form-text text-muted">Upload training syllabus document</small>
+                    {% if form.syllabus.errors %}
+                        <div class="text-danger">{{ form.syllabus.errors }}</div>
+                    {% endif %}
+                    {% if training and training.syllabus %}
+                        <div class="mt-2">
+                            <a href="{{ training.syllabus.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                📄 View Current Syllabus
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'training_list' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">💾 {{ action }} Training</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

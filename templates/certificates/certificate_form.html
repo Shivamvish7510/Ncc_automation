@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Certificate{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ action }} Certificate</h2>
+    <p class="text-muted">Issue or update NCC certificates for cadets</p>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.certificate_type.id_for_label }}" class="form-label">
+                            Certificate Type <span class="text-danger">*</span>
+                        </label>
+                        {{ form.certificate_type }}
+                        {% if form.certificate_type.errors %}
+                            <div class="text-danger">{{ form.certificate_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.cadet.id_for_label }}" class="form-label">
+                            Cadet <span class="text-danger">*</span>
+                        </label>
+                        {{ form.cadet }}
+                        {% if form.cadet.errors %}
+                            <div class="text-danger">{{ form.cadet.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.title.id_for_label }}" class="form-label">
+                        Certificate Title
+                    </label>
+                    {{ form.title }}
+                    <small class="form-text text-muted">e.g., "Excellence in Drill", "Camp Participation"</small>
+                    {% if form.title.errors %}
+                        <div class="text-danger">{{ form.title.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">
+                        Description
+                    </label>
+                    {{ form.description }}
+                    <small class="form-text text-muted">Brief description of the achievement or activity</small>
+                    {% if form.description.errors %}
+                        <div class="text-danger">{{ form.description.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.issued_date.id_for_label }}" class="form-label">
+                            Issued Date
+                        </label>
+                        {{ form.issued_date }}
+                        {% if form.issued_date.errors %}
+                            <div class="text-danger">{{ form.issued_date.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.valid_until.id_for_label }}" class="form-label">
+                            Valid Until (Optional)
+                        </label>
+                        {{ form.valid_until }}
+                        <small class="form-text text-muted">Leave blank if no expiry</small>
+                        {% if form.valid_until.errors %}
+                            <div class="text-danger">{{ form.valid_until.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.event.id_for_label }}" class="form-label">
+                            Related Event (Optional)
+                        </label>
+                        {{ form.event }}
+                        {% if form.event.errors %}
+                            <div class="text-danger">{{ form.event.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.training.id_for_label }}" class="form-label">
+                            Related Training (Optional)
+                        </label>
+                        {{ form.training }}
+                        {% if form.training.errors %}
+                            <div class="text-danger">{{ form.training.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.grade.id_for_label }}" class="form-label">
+                            Grade (Optional)
+                        </label>
+                        {{ form.grade }}
+                        {% if form.grade.errors %}
+                            <div class="text-danger">{{ form.grade.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.score.id_for_label }}" class="form-label">
+                            Score (Optional)
+                        </label>
+                        {{ form.score }}
+                        <small class="form-text text-muted">Percentage or marks</small>
+                        {% if form.score.errors %}
+                            <div class="text-danger">{{ form.score.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.certificate_file.id_for_label }}" class="form-label">
+                        Certificate File (PDF)
+                    </label>
+                    {{ form.certificate_file }}
+                    <small class="form-text text-muted">Upload the signed certificate PDF</small>
+                    {% if form.certificate_file.errors %}
+                        <div class="text-danger">{{ form.certificate_file.errors }}</div>
+                    {% endif %}
+                    {% if certificate and certificate.certificate_file %}
+                        <div class="mt-2">
+                            <a href="{{ certificate.certificate_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                📄 View Current File
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">
+                            Status <span class="text-danger">*</span>
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="text-danger">{{ form.status.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.remarks.id_for_label }}" class="form-label">
+                        Remarks (Optional)
+                    </label>
+                    {{ form.remarks }}
+                    {% if form.remarks.errors %}
+                        <div class="text-danger">{{ form.remarks.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                
+                <div class="alert alert-info">
+                    <strong>ℹ️ Note:</strong> Certificate number will be auto-generated upon saving.
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'certificate_list' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">💾 {{ action }} Certificate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

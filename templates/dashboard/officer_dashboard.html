@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Officer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Officer Dashboard</h2>
+    <p class="text-muted">Welcome, {{ officer.get_rank_display }} {{ user.get_full_name }}!</p>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h3>{{ unit_cadets_count }}</h3>
+                    <p>Cadets in Your Unit</p>
+                    <a href="{% url 'cadet_list' %}" class="btn btn-light btn-sm">View All</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h3>{{ my_events }}</h3>
+                    <p>Events Organized</p>
+                    <a href="{% url 'event_list' %}" class="btn btn-light btn-sm">View</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h3>{{ pending_registrations }}</h3>
+                    <p>Pending Approvals</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Attendance Sessions</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_sessions %}
+                    <ul class="list-group">
+                        {% for session in recent_sessions %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>{{ session.title }} - {{ session.date }}</span>
+                            <a href="{% url 'attendance_session_detail' session.id %}" 
+                               class="btn btn-sm btn-primary">View</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">No recent sessions</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'cadet_create' %}" class="btn btn-primary btn-block mb-2 w-100">
+                        Add New Cadet
+                    </a>
+                    <a href="{% url 'attendance_session_create' %}" class="btn btn-success btn-block mb-2 w-100">
+                        Create Attendance Session
+                    </a>
+                    <a href="{% url 'event_create' %}" class="btn btn-info btn-block w-100">
+                        Create Event
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
