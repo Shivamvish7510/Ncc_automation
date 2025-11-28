@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Your Face - NCC Automation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Register Your Face for Attendance</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if has_face_registered %}
+                        <div class="alert alert-info">
+                            <h5>You have already registered your face.</h5>
+                            <p>If you want to update your face registration, you can register again below.</p>
+                            <div class="text-center my-3">
+                                <img src="{{ cadet.face_encoding.face_thumbnail.url }}" 
+                                     alt="Your registered face" 
+                                     class="img-thumbnail" 
+                                     style="max-width: 200px;">
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <h5>Face Registration Required</h5>
+                            <p>Please register your face to use the face recognition attendance system.</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Instructions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ol>
+                                        <li>Make sure you are in a well-lit area</li>
+                                        <li>Position your face in the camera frame</li>
+                                        <li>Look directly at the camera</li>
+                                        <li>Ensure your face is clearly visible</li>
+                                        <li>Remove any accessories that cover your face</li>
+                                    </ol>
+                                    <div class="alert alert-info small">
+                                        <i class="fas fa-info-circle"></i> 
+                                        Your face data will be securely stored and only used for attendance purposes.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {% if not deepface_available %}
+                            <div class="alert alert-warning">
+                                <strong>Face Recognition unavailable</strong>
+                                <p class="mb-0">DeepFace or its dependencies are not installed on this server. The camera capture flow is disabled. You can still upload an image to register your face.</p>
+                            </div>
+                            {% endif %}
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Camera</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div id="camera-container" class="mb-3" {% if not deepface_available %}style="display:none;"{% endif %}>
+                                        <video id="video" width="320" height="240" autoplay class="img-fluid border"></video>
+                                        <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
+                                    </div>
+                                    <div id="preview-container" class="mb-3" style="display: none;">
+                                        <img id="preview" src="#" alt="Preview" class="img-fluid border">
+                                    </div>
+                                    <div id="status" class="alert" style="display: none;"></div>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button id="capture-btn" class="btn btn-primary" {% if not deepface_available %}disabled title="DeepFace is not installed on server"{% endif %}>
+                                            <i class="fas fa-camera"></i> Capture
+                                        </button>
+                                        <button id="retry-btn" class="btn btn-secondary" style="display: none;">
+                                            <i class="fas fa-redo"></i> Retry
+                                        </button>
+                                        <button id="register-btn" class="btn btn-success" style="display: none;" {% if not deepface_available %}disabled title="DeepFace is not installed on server"{% endif %}>
+                                            <i class="fas fa-check"></i> Register Face
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                                                    {% if deepface_available %}
+                                                    <!-- Fallback: manual image upload when DeepFace not available -->
+                                                    <div class="card mt-3">
+                                                        <div class="card-header bg-light"><h5 class="mb-0">Upload Image</h5></div>
+                                                        <div class="card-body">
+                                                            <form method="post" enctype="multipart/form-data">
+                                                                {% csrf_token %}
+                                                                <div class="mb-3">
+                                                                    <input type="file" name="image" accept="image/*" class="form-control">
+                                                                </div>
+                                                                <button type="submit" class="btn btn-primary">Upload and Register</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loading" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none justify-content-center align-items-center" style="z-index: 9999;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <span class="text-white ms-3">Processing your face, please wait...</span>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    #video, #preview {
+        max-width: 100%;
+        height: auto;
+        background-color: #f8f9fa;
+    }
+    #camera-container {
+        position: relative;
+        margin: 0 auto;
+        width: 320px;
+    }
+    .face-box {
+        position: absolute;
+        border: 2px solid #0d6efd;
+        border-radius: 4px;
+    }
+    .face-label {
+        position: absolute;
+        background-color: #0d6efd;
+        color: white;
+        padding: 2px 5px;
+        font-size: 12px;
+        border-radius: 0 0 4px 4px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const preview = document.getElementById('preview');
+        const captureBtn = document.getElementById('capture-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const cameraContainer = document.getElementById('camera-container');
+        const previewContainer = document.getElementById('preview-container');
+        const statusDiv = document.getElementById('status');
+        const loadingDiv = document.getElementById('loading');
+        
+        let stream = null;
+        let capturedImage = null;
+        
+        // Start camera
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user' 
+                    },
+                    audio: false 
+                });
+                video.srcObject = stream;
+                
+                // Show camera container and hide preview
+                cameraContainer.style.display = 'block';
+                previewContainer.style.display = 'none';
+                
+                // Show capture button and hide others
+                captureBtn.style.display = 'inline-block';
+                retryBtn.style.display = 'none';
+                registerBtn.style.display = 'none';
+                
+                // Clear status
+                statusDiv.style.display = 'none';
+                
+                return true;
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                showStatus('Error accessing camera. Please make sure you have granted camera permissions.', 'danger');
+                return false;
+            }
+        }
+        
+        // Capture image from video
+        function captureImage() {
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw current video frame to canvas
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Get image data URL
+            capturedImage = canvas.toDataURL('image/jpeg');
+            
+            // Show preview
+            preview.src = capturedImage;
+            previewContainer.style.display = 'block';
+            cameraContainer.style.display = 'none';
+            
+            // Show retry and register buttons, hide capture button
+            captureBtn.style.display = 'none';
+            retryBtn.style.display = 'inline-block';
+            registerBtn.style.display = 'inline-block';
+            
+            // Clear status
+            statusDiv.style.display = 'none';
+        }
+        
+        // Show status message
+        function showStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `alert alert-${type}`;
+            statusDiv.style.display = 'block';
+        }
+        
+        // Register face
+        async function registerFace() {
+            if (!capturedImage) {
+                showStatus('No image captured.', 'danger');
+                return;
+            }
+            
+            // Show loading spinner
+            loadingDiv.classList.remove('d-none');
+            loadingDiv.classList.add('d-flex');
+            
+            try {
+                // Create FormData and append the image
+                const formData = new FormData();
+                const blob = await fetch(capturedImage).then(res => res.blob());
+                formData.append('image', blob, 'face.jpg');
+                
+                // Send to server
+                // Post to the current page path; supports both self-registration (no cadet id)
+                // and officer/staff registering for a specific cadet (path includes cadet id)
+                const response = await fetch(window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Face registered successfully!', 'success');
+                    // Reload the page after a short delay to show the updated UI
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showStatus(result.error || 'Failed to register face. Please try again.', 'danger');
+                }
+            } catch (error) {
+                console.error('Error registering face:', error);
+                showStatus('An error occurred. Please try again.', 'danger');
+            } finally {
+                // Hide loading spinner
+                loadingDiv.classList.add('d-none');
+                loadingDiv.classList.remove('d-flex');
+            }
+        }
+        
+        // Event listeners
+        captureBtn.addEventListener('click', captureImage);
+        retryBtn.addEventListener('click', startCamera);
+        registerBtn.addEventListener('click', registerFace);
+        
+        // Start camera when page loads (only if server has deepface enabled)
+        const DEEPFACE_AVAILABLE = {{ deepface_available|yesno:'true,false' }};
+        if (DEEPFACE_AVAILABLE) {
+            startCamera();
+        }
+    });
+</script>
+{% endblock %}

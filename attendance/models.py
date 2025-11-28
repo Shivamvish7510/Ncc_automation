@@ -1,5 +1,11 @@
 from django.db import models
 from django.utils import timezone
+try:
+    # Import face_recognition models so Django registers them for migrations
+    from .face_recognition import models as face_recognition_models  # noqa: F401
+except Exception:
+    # If the import fails at startup (e.g., missing optional dependencies), ignore so server can still run.
+    face_recognition_models = None
 
 class AttendanceSession(models.Model):
     SESSION_TYPE_CHOICES = (

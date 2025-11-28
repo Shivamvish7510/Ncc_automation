@@ -35,6 +35,9 @@
                         <td>
                             <a href="{% url 'attendance_session_detail' session.id %}" class="btn btn-sm btn-info">View</a>
                             <a href="{% url 'mark_attendance' session.id %}" class="btn btn-sm btn-success">Mark Attendance</a>
+                            {% if user.is_staff or user == session.created_by.user or user.officer_profile and user.officer_profile.unit == session.unit %}
+                                <a href="{% url 'face_attendance' session.id %}" class="btn btn-sm btn-outline-primary ms-1">Face Attendance</a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}

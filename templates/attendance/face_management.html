@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Face Registrations - NCC Automation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Manage Face Registrations</h4>
+                <div>
+                    <a href="{% url 'face_register' %}" class="btn btn-sm btn-light">
+                        <i class="fas fa-plus"></i> Register New Face
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if db_error %}
+                <div class="alert alert-warning">
+                    <strong>Database migrations required</strong>
+                    <p class="mb-0">It appears the face recognition database tables are not present. Run <code>python manage.py makemigrations attendance</code> and <code>python manage.py migrate</code> to create them.</p>
+                    <p class="small text-muted">Database error: {{ db_error_message }}</p>
+                </div>
+            {% endif %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <ul class="nav nav-tabs mb-4" id="faceTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="registered-tab" data-bs-toggle="tab" 
+                            data-bs-target="#registered" type="button" role="tab" 
+                            aria-controls="registered" aria-selected="true">
+                        Registered Faces <span class="badge bg-primary">{{ cadets_with_faces.count }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="unregistered-tab" data-bs-toggle="tab" 
+                            data-bs-target="#unregistered" type="button" role="tab" 
+                            aria-controls="unregistered" aria-selected="false">
+                        Unregistered Cadets <span class="badge bg-secondary">{{ cadets_without_faces.count }}</span>
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="faceTabsContent">
+                <!-- Registered Faces Tab -->
+                <div class="tab-pane fade show active" id="registered" role="tabpanel" aria-labelledby="registered-tab">
+                    {% if cadets_with_faces %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Photo</th>
+                                        <th>Cadet</th>
+                                        <th>Enrollment</th>
+                                        <th>Unit</th>
+                                        <th>Registered On</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cadet in cadets_with_faces %}
+                                        <tr>
+                                            <td>
+                                                <img src="{{ cadet.face_encoding.face_thumbnail.url }}" 
+                                                     alt="{{ cadet.user.get_full_name }}" 
+                                                     class="rounded-circle" 
+                                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                            </td>
+                                            <td>{{ cadet.user.get_full_name }}</td>
+                                            <td>{{ cadet.enrollment_number }}</td>
+                                            <td>{{ cadet.unit.name }}</td>
+                                            <td>{{ cadet.face_encoding.created_at|date:"M j, Y" }}</td>
+                                            <td>
+                                                <span class="badge bg-success">Registered</span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-danger delete-face" 
+                                                        data-cadet-id="{{ cadet.id }}"
+                                                        data-cadet-name="{{ cadet.user.get_full_name }}">
+                                                    <i class="fas fa-trash-alt"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-user-shield fa-4x text-muted mb-3"></i>
+                            <h5>No faces registered yet</h5>
+                            <p class="text-muted">Register faces to enable face recognition attendance.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Unregistered Cadets Tab -->
+                <div class="tab-pane fade" id="unregistered" role="tabpanel" aria-labelledby="unregistered-tab">
+                    {% if cadets_without_faces %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Photo</th>
+                                        <th>Cadet</th>
+                                        <th>Enrollment</th>
+                                        <th>Unit</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cadet in cadets_without_faces %}
+                                        <tr>
+                                            <td>
+                                                <img src="{% if cadet.user.profile_picture %}{{ cadet.user.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                                                     alt="{{ cadet.user.get_full_name }}" 
+                                                     class="rounded-circle" 
+                                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                            </td>
+                                            <td>{{ cadet.user.get_full_name }}</td>
+                                            <td>{{ cadet.enrollment_number }}</td>
+                                            <td>{{ cadet.unit.name }}</td>
+                                            <td>
+                                                <a href="{% url 'register_cadet_face' cadet.id %}" 
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-user-plus"></i> Register Face
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                            <h5>All cadets have registered their faces</h5>
+                            <p class="text-muted">Great job! Face recognition is available for all cadets.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteFaceModal" tabindex="-1" aria-labelledby="deleteFaceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteFaceModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the face registration for <strong id="cadetName"></strong>?</p>
+                <p class="text-muted">This action cannot be undone. The cadet will need to register their face again to use face recognition.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteFaceForm" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> Delete Face Registration
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle delete face button clicks
+        document.querySelectorAll('.delete-face').forEach(button => {
+            button.addEventListener('click', function() {
+                const cadetId = this.dataset.cadetId;
+                const cadetName = this.dataset.cadetName;
+                
+                // Update modal content
+                document.getElementById('cadetName').textContent = cadetName;
+                
+                // Update form action
+                const form = document.getElementById('deleteFaceForm');
+                form.action = `/attendance/face/${cadetId}/delete/`;
+                
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('deleteFaceModal'));
+                modal.show();
+            });
+        });
+        
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

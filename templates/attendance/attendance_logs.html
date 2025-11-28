@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance Logs - NCC Automation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Face Recognition Attendance Logs</h4>
+        </div>
+        <div class="card-body">
+            {% if logs %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Cadet</th>
+                                <th>Enrollment</th>
+                                <th>Status</th>
+                                <th>Confidence</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                                <tr>
+                                    <td>{{ log.created_at|date:'M j, Y g:i a' }}</td>
+                                    <td>{% if log.cadet %}{{ log.cadet.user.get_full_name }}{% else %}-{% endif %}</td>
+                                    <td>{% if log.cadet %}{{ log.cadet.enrollment_number }}{% else %}-{% endif %}</td>
+                                    <td>{{ log.get_status_display }}</td>
+                                    <td>{{ log.confidence|default:'N/A' }}</td>
+                                    <td>{{ log.ip_address|default:'-' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-muted">
+                    <p>No logs available for this session.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

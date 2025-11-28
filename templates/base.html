@@ -61,6 +61,7 @@
                     {% if user.role != 'CADET' %}
                         <a href="{% url 'cadet_list' %}">Manage Cadets</a>
                         <a href="{% url 'attendance_session_list' %}">Attendance Sessions</a>
+                        <a href="{% url 'face_management' %}">Face Recognition</a>
                         <a href="{% url 'event_list' %}">Manage Events</a>
                         <a href="{% url 'training_list' %}">Manage Trainings</a>
                         <a href="{% url 'certificate_list' %}">Manage Certificates</a>
@@ -68,6 +69,7 @@
                     {% else %}
                         <a href="{% url 'cadet_detail' user.cadet_profile.id %}">My Profile</a>
                         <a href="{% url 'cadet_attendance' %}">My Attendance</a>
+                        <a href="{% url 'face_register' %}">Register Face</a>
                         <a href="{% url 'cadet_events' %}">My Events</a>
                         <a href="{% url 'cadet_trainings' %}">My Trainings</a>
                         <a href="{% url 'cadet_certificates' %}">My Certificates</a>

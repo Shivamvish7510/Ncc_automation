@@ -1,0 +1,445 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mark Attendance - NCC Automation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Mark Attendance - {{ session.title }}</h4>
+                        <div>
+                            <a href="{% url 'attendance_logs' session.id %}" class="btn btn-sm btn-light">
+                                <i class="fas fa-list"></i> View Logs
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Date:</strong> {{ session.date|date:"F j, Y" }}</p>
+                            <p><strong>Time:</strong> {{ session.start_time|time:"g:i A" }} - {{ session.end_time|time:"g:i A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Unit:</strong> {{ session.unit.name }}</p>
+                            <p><strong>Location:</strong> {{ session.location }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Camera</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div id="camera-container" class="mb-3" {% if not deepface_available %}style="display:none;"{% endif %}>
+                                        <video id="video" width="320" height="240" autoplay class="img-fluid border"></video>
+                                        <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
+                                    </div>
+                                    <div id="preview-container" class="mb-3" style="display: none;">
+                                        <img id="preview" src="#" alt="Preview" class="img-fluid border">
+                                    </div>
+                                    <div id="status" class="alert" style="display: none;"></div>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button id="capture-btn" class="btn btn-primary">
+                                            <i class="fas fa-camera"></i> Capture
+                                        </button>
+                                        <button id="retry-btn" class="btn btn-secondary" style="display: none;">
+                                            <i class="fas fa-redo"></i> Retry
+                                        </button>
+                                        <button id="mark-attendance-btn" class="btn btn-success" style="display: none;"
+                                            data-session-id="{{ session.id }}"
+                                            data-process-url="{% url 'process_face_attendance' session.id %}"
+                                            {% if not deepface_available %}disabled title="Face recognition is not available on the server"{% endif %}>
+                                            <i class="fas fa-user-check"></i> Mark Attendance
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                                                    {% if not deepface_available %}
+                                                    <div class="alert alert-warning mt-3">
+                                                        <strong>Face Recognition unavailable</strong>
+                                                        <p class="mb-0">Server does not have DeepFace installed. Automatic camera-based attendance is disabled. Please contact your administrator or use manual marking.</p>
+                                                    </div>
+                                                    {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Attendance Status</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="attendance-result" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-user-shield fa-3x mb-3"></i>
+                                            <p class="mb-0">Capture a face to mark attendance</p>
+                                        </div>
+                                    </div>
+                                    <div id="attendance-stats" class="mt-3">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Total Present:</span>
+                                            <span class="badge bg-success" id="present-count">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Total Absent:</span>
+                                            <span class="badge bg-danger" id="absent-count">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Total Marked:</span>
+                                            <span class="badge bg-primary" id="total-count">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Recent Attendance</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Cadet</th>
+                                            <th>Enrollment</th>
+                                            <th>Status</th>
+                                            <th>Confidence</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recent-attendees">
+                                        <!-- Will be populated by JavaScript -->
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-3">
+                                                No attendance marked yet
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loading" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none justify-content-center align-items-center" style="z-index: 9999;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <span class="text-white ms-3">Processing, please wait...</span>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    #video, #preview {
+        max-width: 100%;
+        height: auto;
+        background-color: #f8f9fa;
+    }
+    #camera-container {
+        position: relative;
+        margin: 0 auto;
+        width: 320px;
+    }
+    .face-box {
+        position: absolute;
+        border: 2px solid #0d6efd;
+        border-radius: 4px;
+    }
+    .face-label {
+        position: absolute;
+        background-color: #0d6efd;
+        color: white;
+        padding: 2px 5px;
+        font-size: 12px;
+        border-radius: 0 0 4px 4px;
+    }
+    #attendance-result {
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .cadet-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 15px;
+        border: 3px solid #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const preview = document.getElementById('preview');
+        const captureBtn = document.getElementById('capture-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        const markAttendanceBtn = document.getElementById('mark-attendance-btn');
+        const cameraContainer = document.getElementById('camera-container');
+        const previewContainer = document.getElementById('preview-container');
+        const statusDiv = document.getElementById('status');
+        const loadingDiv = document.getElementById('loading');
+        const attendanceResult = document.getElementById('attendance-result');
+        const recentAttendees = document.getElementById('recent-attendees');
+        
+        // Stats elements
+        const presentCount = document.getElementById('present-count');
+        const absentCount = document.getElementById('absent-count');
+        const totalCount = document.getElementById('total-count');
+        
+        let stream = null;
+        let capturedImage = null;
+        let attendanceData = [];
+        
+        // Start camera
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user' 
+                    },
+                    audio: false 
+                });
+                video.srcObject = stream;
+                
+                // Show camera container and hide preview
+                cameraContainer.style.display = 'block';
+                previewContainer.style.display = 'none';
+                
+                // Show capture button and hide others
+                captureBtn.style.display = 'inline-block';
+                retryBtn.style.display = 'none';
+                markAttendanceBtn.style.display = 'none';
+                
+                // Clear status
+                statusDiv.style.display = 'none';
+                
+                return true;
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                showStatus('Error accessing camera. Please make sure you have granted camera permissions.', 'danger');
+                return false;
+            }
+        }
+        
+        // Capture image from video
+        function captureImage() {
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw current video frame to canvas
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Get image data URL
+            capturedImage = canvas.toDataURL('image/jpeg');
+            
+            // Show preview
+            preview.src = capturedImage;
+            previewContainer.style.display = 'block';
+            cameraContainer.style.display = 'none';
+            
+            // Show retry and mark attendance buttons, hide capture button
+            captureBtn.style.display = 'none';
+            retryBtn.style.display = 'inline-block';
+            markAttendanceBtn.style.display = 'inline-block';
+            
+            // Clear status
+            statusDiv.style.display = 'none';
+            
+            // Show default attendance result
+            showAttendanceResult();
+        }
+        
+        // Show status message
+        function showStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `alert alert-${type}`;
+            statusDiv.style.display = 'block';
+        }
+        
+        // Show attendance result
+        function showAttendanceResult(cadet = null, success = true, message = '') {
+            if (!cadet) {
+                attendanceResult.innerHTML = `
+                    <div class="text-muted">
+                        <i class="fas fa-user-shield fa-3x mb-3"></i>
+                        <p class="mb-0">${message || 'Capture a face to mark attendance'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (success) {
+                attendanceResult.innerHTML = `
+                    <div class="text-center">
+                        <img src="${cadet.thumbnail_url || '{% static 'img/default-avatar.png' %}'}" 
+                             alt="${cadet.name}" 
+                             class="cadet-avatar">
+                        <h5 class="mb-1">${cadet.name}</h5>
+                        <p class="text-muted mb-1">${cadet.enrollment_number}</p>
+                        <span class="badge bg-success">Attendance Marked</span>
+                        <p class="text-muted small mt-2 mb-0">Confidence: ${(cadet.confidence * 100).toFixed(2)}%</p>
+                    </div>
+                `;
+                
+                // Add to recent attendees
+                addRecentAttendee(cadet);
+                
+                // Update stats
+                updateStats();
+                
+                // Auto-capture next after a delay
+                setTimeout(() => {
+                    retryBtn.click();
+                }, 2000);
+            } else {
+                attendanceResult.innerHTML = `
+                    <div class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                        <h5>${message || 'Attendance Not Marked'}</h5>
+                        <p class="small">Please try again or contact an administrator.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Add a recent attendee to the table
+        function addRecentAttendee(cadet) {
+            // If this is the first attendee, remove the placeholder
+            if (recentAttendees.querySelector('.text-muted')) {
+                recentAttendees.innerHTML = '';
+            }
+            
+            // Create a new row
+            const row = document.createElement('tr');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            row.innerHTML = `
+                <td>${timeString}</td>
+                <td>${cadet.name}</td>
+                <td>${cadet.enrollment_number}</td>
+                <td><span class="badge bg-success">Present</span></td>
+                <td>${(cadet.confidence * 100).toFixed(1)}%</td>
+            `;
+            
+            // Add to the top of the table
+            recentAttendees.insertBefore(row, recentAttendees.firstChild);
+            
+            // Limit to 10 recent attendees
+            if (recentAttendees.children.length > 10) {
+                recentAttendees.removeChild(recentAttendees.lastChild);
+            }
+            
+            // Add to attendance data
+            attendanceData.unshift({
+                time: now,
+                cadet: cadet,
+                status: 'PRESENT',
+                confidence: cadet.confidence
+            });
+        }
+        
+        // Update attendance statistics
+        function updateStats() {
+            const present = document.querySelectorAll('#recent-attendees tr').length;
+            const absent = 0; // This would come from your backend in a real app
+            
+            presentCount.textContent = present;
+            absentCount.textContent = absent;
+            totalCount.textContent = present + absent;
+        }
+        
+    // Mark attendance
+    async function markAttendance() {
+            if (!capturedImage) {
+                showStatus('No image captured.', 'danger');
+                return;
+            }
+            
+            // Show loading spinner
+            loadingDiv.classList.remove('d-none');
+            loadingDiv.classList.add('d-flex');
+            
+            try {
+                // Send the image to the server for processing using URL from data attribute
+                const processUrl = markAttendanceBtn.dataset.processUrl || `/attendance/session/${markAttendanceBtn.dataset.sessionId}/process-face/`;
+                const response = await fetch(processUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        image: capturedImage.split(',')[1]  // Remove the data URL prefix
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    showAttendanceResult({
+                        name: result.cadet_name,
+                        enrollment_number: result.enrollment_number,
+                        confidence: result.confidence || 1.0,
+                        thumbnail_url: result.thumbnail_url
+                    }, true);
+                    
+                    // Show success status
+                    showStatus('Attendance marked successfully!', 'success');
+                } else {
+                    // Show error message
+                    showAttendanceResult(null, false, result.message || 'Face not recognized');
+                    showStatus(result.message || 'Failed to mark attendance. Please try again.', 'danger');
+                }
+            } catch (error) {
+                console.error('Error marking attendance:', error);
+                showStatus('An error occurred. Please try again.', 'danger');
+            } finally {
+                // Hide loading spinner
+                loadingDiv.classList.add('d-none');
+                loadingDiv.classList.remove('d-flex');
+            }
+        }
+        
+        // Event listeners
+        captureBtn.addEventListener('click', captureImage);
+        retryBtn.addEventListener('click', startCamera);
+        markAttendanceBtn.addEventListener('click', markAttendance);
+        
+        // Start camera when page loads (only if deepface is available server-side)
+        const DEEPFACE_AVAILABLE = {{ deepface_available|yesno:'true,false' }};
+        if (DEEPFACE_AVAILABLE) {
+            startCamera();
+        }
+        
+        // Load initial data
+        updateStats();
+    });
+</script>
+{% endblock %}

@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from guardian.shortcuts import assign_perm
+# Note: django-guardian has been removed from this project. Object level
+# permissions (assign_perm) were previously used to allow a user to view
+# their own Cadet object. This behavior is intentionally disabled; views
+# should rely on role checks (user == cadet.user) or model-level permissions.
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -99,5 +102,6 @@ class Cadet(models.Model):
     def save(self, *args, **kwargs):
         is_new = self.pk is None
         super().save(*args, **kwargs)
-        if is_new:
-            assign_perm('view_cadet', self.user, self)
+        # Previously we assigned object-level 'view_cadet' permission using django-guardian.
+        # With django-guardian removed, rely on role-based checks or explicit view logic
+        # to allow cadets to view their own profile. No per-object permission is assigned here.
